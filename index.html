@@ -3,8 +3,6 @@
 <html>
 <head>
     <title> Hiring Manager Experiment </title>
-    <!-- Load jQuery -->
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="https://unpkg.com/jspsych@7.3.3"></script>
     <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.2"></script>
     <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@1.1.2"></script>
@@ -23,7 +21,7 @@ const jsPsych = initJsPsych({
 });
 
 // Define experiment parameters
-const NUM_TRIALS = 2;
+const NUM_TRIALS = 20;
 const NUM_OPTIONS = 4;
 const REWARD_PROBABILITY = 0.5;
 //reward probabilities for each arm is the same, determined by a parameter to be set before the experiment
@@ -39,7 +37,6 @@ function generateRewards(numTrials, rewardProbs) {
     }
     return rewards;
 }
-
 const allRewards = generateRewards(NUM_TRIALS, REWARD_PROBABILITIES);
 
 // Create image stimuli
