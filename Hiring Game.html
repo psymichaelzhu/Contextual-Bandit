@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title> Hiring Manager Experiment </title>
+    <script src="https://unpkg.com/jspsych@7.3.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@1.1.2"></script>
+    <link href="https://unpkg.com/jspsych@7.3.3/css/jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+</body>
+<script>
+
+// Initialize jsPsych
+const jsPsych = initJsPsych({
+    /*on_finish: function() {
+        jsPsych.data.displayData();
+    }*/
+});
+
+// Define experiment parameters
+const NUM_TRIALS = 20;
+const NUM_OPTIONS = 4;
+const REWARD_PROBABILITY = 0.5;
+//reward probabilities for each arm is the same, determined by a parameter to be set before the experiment
+const REWARD_PROBABILITIES = Array(NUM_OPTIONS).fill(REWARD_PROBABILITY);
+
+
+// Generate rewards for all trials
+function generateRewards(numTrials, rewardProbs) {
+    let rewards = [];
+    for (let i = 0; i < numTrials; i++) {
+        let trialRewards = rewardProbs.map(prob => Math.random() < prob ? 1 : 0);
+        rewards.push(trialRewards);
+    }
+    return rewards;
+}
+
+const allRewards = generateRewards(NUM_TRIALS, REWARD_PROBABILITIES);
+
+// Create image stimuli
+const unshuffledimages = [
+    'img/arm1.png',
+    'img/arm2.png',
+    'img/arm3.png',
+    'img/arm4.png'
+];
+//shuffle the images
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+const images = shuffleArray([...unshuffledimages]);
+
+
+// Welcome
+const welcome = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: '<h1>Welcome to the Hiring Manager Experiment</h1><p>Press any key to continue</p>',
+    data: {
+        tag: 'welcome'
+    } 
+};
+
+// Instructions
+const instructions = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: `    
+        <p><b>In this experiment, you will play the role of a manager making hiring decisions.</b></p>
+        <p>For each trial, you can hire one from the four candidates. </p>
+        <p>Each candidate comes from a distinct group, represented by different colors. The performance of individuals in the same group is similar.</p>
+        <p>After each selection, you will receive feedback on whether the selected candidate succeeded or failed, as well as your total cumulative success.</p>
+        <p>Your goal is to maximize the overall performance of your team by selecting the right candidates. 
+        <p>In each trial, choose one of the four candidates by pressing the corresponding key:
+        <div style='width: 100%; display: flex; justify-content: center;'>
+            <div style='width: 20%; text-align: center;'>
+                <img src='${images[0]}' style='max-width: 100%;'></img>
+                <p class='small'><strong>Press the 1 key</strong></p>
+            </div>
+            <div style='width: 20%; text-align: center;'>
+                <img src='${images[1]}' style='max-width: 100%;'></img>
+                <p class='small'><strong>Press the 2 key</strong></p>
+            </div>
+            <div style='width: 20%; text-align: center;'>
+                <img src='${images[2]}' style='max-width: 100%;'></img>
+                <p class='small'><strong>Press the 3 key</strong></p>
+            </div>
+            <div style='width: 20%; text-align: center;'>
+                <img src='${images[3]}' style='max-width: 100%;'></img>
+                <p class='small'><strong>Press the 4 key</strong></p>
+            </div>
+        </div>
+        <p>Press any key to begin.</p>
+    `,
+    data: {
+        tag: 'instructions'
+    }
+};
+
+// Create trial
+function createTrial(trialIndex) {
+    return {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+            <div style='width: 100%; display: flex; justify-content: center;'>
+            <div style='width: 30%; text-align: center;'>
+                <img src='${images[0]}' style='max-width: 100%;'></img>
+                <p class='small'><strong>Press the 1 key</strong></p>
+            </div>
+            <div style='width: 30%; text-align: center;'>
+                <img src='${images[1]}' style='max-width: 100%;'></img>
+                <p class='small'><strong>Press the 2 key</strong></p>
+            </div>
+            <div style='width: 30%; text-align: center;'>
+                <img src='${images[2]}' style='max-width: 100%;'></img>
+                <p class='small'><strong>Press the 3 key</strong></p>
+            </div>
+            <div style='width: 30%; text-align: center;'>
+                <img src='${images[3]}' style='max-width: 100%;'></img>
+                <p class='small'><strong>Press the 4 key</strong></p>
+            </div>
+        </div>
+        `,
+        choices: ['1', '2', '3', '4'],
+        on_finish: function(data) {
+            const choice = parseInt(data.response) - 1;
+            const reward = allRewards[trialIndex][choice];
+            data.reward = reward;
+            data.total_reward = jsPsych.data.get().select('reward').sum();
+        },
+        data: {
+            tag: 'trial'
+        }
+    };
+}
+
+// Feedback
+function createFeedback(trialIndex) {
+    return {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: function() {
+            const lastTrial = jsPsych.data.get().last(1).values()[0];
+            const selectedImage = images[parseInt(lastTrial.response) - 1];
+            const performance = lastTrial.reward === 1 ? "Success" : "Failure";
+            return `
+                <div style='display: flex; align-items: center; justify-content: center;'>
+                    <img src='${selectedImage}' style='width: 60%; height: 60%; object-fit: contain; margin-right: 10%;'></img>
+                    <div>
+                        <p>You have selected candidate ${lastTrial.response}</p>
+                        <p>The performance of the selected candidate: ${performance}</p>
+                        <p>Cumulative success: ${lastTrial.total_reward}</p>
+                    </div>
+                </div>
+                <p>Press any key to continue</p>
+            `;
+        },
+        data: {
+            tag: 'feedback'
+        }
+    };
+}
+
+// Create experiment timeline
+let timeline = [welcome, instructions];
+
+for (let i = 0; i < NUM_TRIALS; i++) {
+    timeline.push(createTrial(i));
+    timeline.push(createFeedback(i));
+}
+
+// Debrief
+const debrief = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: function() {
+        const totalReward = jsPsych.data.get().select('reward').sum();
+        return `
+            <h2>Experiment finished</h2>
+            <p>Your total success is: ${totalReward}</p>
+            <p>Thank you for your participation!</p>
+            <p>Press any key to continue</p>
+        `;
+    },
+    data: {
+        tag: 'debrief'
+    }
+};
+
+
+
+timeline.push(debrief);
+
+// Run experiment
+jsPsych.run(timeline);
+
+</script>
+</html>
