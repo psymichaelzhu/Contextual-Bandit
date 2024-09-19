@@ -18,6 +18,7 @@ const jsPsych = initJsPsych({
     /*on_finish: function() {
         jsPsych.data.displayData();
     }*/
+    //show_progress_bar: true
 });
 
 // Define experiment parameters
@@ -79,11 +80,11 @@ const instructions = {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: `    
         <p><b>In this experiment, you will play the role of a manager making hiring decisions.</b></p>
-        <p>For each trial, you can hire one from the four candidates. </p>
-        <p>Each candidate comes from a distinct group, represented by different colors. The performance of individuals in the same group is similar.</p>
-        <p>After each selection, you will receive feedback on whether the selected candidate succeeded or failed, as well as your total cumulative success.</p>
-        <p>Your goal is to maximize the overall performance of your team by selecting the right candidates. 
-        <p>In each trial, choose one of the four candidates by pressing the corresponding key:
+        <p>You will conduct multiple rounds of recruitment. In each round, you can select one candidate out of four to hire. </p>
+        <p>Each candidate comes from a different background group, represented by different colors. Individuals from the same group tend to perform similarly.</p>
+        <p>After each selection, you will receive feedback on whether the chosen candidate excelled in their performance, as well as your team's cumulative success.</p>
+        <p>Your goal is to maximize your team's overall performance by selecting the right candidates.</p>
+        <p>In each recruitment round, choose one of the four candidates by pressing the corresponding key:
         <div style='width: 100%; display: flex; justify-content: center;'>
             <div style='width: 20%; text-align: center;'>
                 <img src='${images[0]}' style='max-width: 100%;'></img>
@@ -153,14 +154,15 @@ function createFeedback(trialIndex) {
         stimulus: function() {
             const lastTrial = jsPsych.data.get().last(1).values()[0];
             const selectedImage = images[parseInt(lastTrial.response) - 1];
-            const performance = lastTrial.reward === 1 ? "Success" : "Failure";
+            const performance = lastTrial.reward === 1 ? "Good" : "Bad";
             return `
                 <div style='display: flex; align-items: center; justify-content: center;'>
-                    <img src='${selectedImage}' style='width: 60%; height: 60%; object-fit: contain; margin-right: 10%;'></img>
+                    <img src='${selectedImage}' style='width: 50%; height: 60%; object-fit: contain;'></img>
                     <div>
-                        <p>You have selected candidate ${lastTrial.response}</p>
-                        <p>The performance of the selected candidate: ${performance}</p>
-                        <p>Cumulative success: ${lastTrial.total_reward}</p>
+                        <p style='width: 120%;' >You have hired the candidate from Group ${lastTrial.response}</p>
+                        <p style='width: 120%;'>This new employee's performance: ${performance}</p>
+                        <p style='width: 120%;'>Your team's overall performance: ${lastTrial.total_reward}</p>
+                    </div>
                     </div>
                 </div>
                 <p>[Press any key to continue]</p>
@@ -187,9 +189,9 @@ const debrief = {
         const totalReward = jsPsych.data.get().select('reward').sum();
         return `
             <h2>Experiment finished</h2>
-            <p>Your total success is: ${totalReward}</p>
+            <p>Your team's cumulative success is: ${totalReward}</p>
             <p>Thank you for your participation!</p>
-            <p>[Press any key to continue]</p>
+            <p>[Press any key to exit]</p>
         `;
     },
     data: {
