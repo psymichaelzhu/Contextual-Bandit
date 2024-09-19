@@ -3,9 +3,12 @@
 <html>
 <head>
     <title> Hiring Manager Experiment </title>
+    <!-- Load jQuery -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="https://unpkg.com/jspsych@7.3.3"></script>
     <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.2"></script>
     <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@1.1.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-fullscreen@1.1.2"></script>
     <link href="https://unpkg.com/jspsych@7.3.3/css/jspsych.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -20,7 +23,7 @@ const jsPsych = initJsPsych({
 });
 
 // Define experiment parameters
-const NUM_TRIALS = 20;
+const NUM_TRIALS = 2;
 const NUM_OPTIONS = 4;
 const REWARD_PROBABILITY = 0.5;
 //reward probabilities for each arm is the same, determined by a parameter to be set before the experiment
@@ -57,10 +60,18 @@ function shuffleArray(array) {
 const images = shuffleArray([...unshuffledimages]);
 
 
+// fullscreen
+const enterFullscreen = {
+    type: jsPsychFullscreen,
+    fullscreen_mode: true,
+    message: '<p>The experiment will start in fullscreen mode.</p><p>Click the button below to enter fullscreen mode.</p>',
+    button_label: 'Enter Fullscreen'
+};
+
 // Welcome
 const welcome = {
     type: jsPsychHtmlKeyboardResponse,
-    stimulus: '<h1>Welcome to the Hiring Manager Experiment</h1><p>Press any key to continue</p>',
+    stimulus: '<h1>Welcome to the Hiring Manager Experiment</h1><p>[Press any key to continue]</p>',
     data: {
         tag: 'welcome'
     } 
@@ -94,7 +105,7 @@ const instructions = {
                 <p class='small'><strong>Press the 4 key</strong></p>
             </div>
         </div>
-        <p>Press any key to begin.</p>
+        <p>[Press any key to begin]</p>
     `,
     data: {
         tag: 'instructions'
@@ -155,7 +166,7 @@ function createFeedback(trialIndex) {
                         <p>Cumulative success: ${lastTrial.total_reward}</p>
                     </div>
                 </div>
-                <p>Press any key to continue</p>
+                <p>[Press any key to continue]</p>
             `;
         },
         data: {
@@ -165,7 +176,7 @@ function createFeedback(trialIndex) {
 }
 
 // Create experiment timeline
-let timeline = [welcome, instructions];
+let timeline = [enterFullscreen, welcome, instructions];
 
 for (let i = 0; i < NUM_TRIALS; i++) {
     timeline.push(createTrial(i));
@@ -181,7 +192,7 @@ const debrief = {
             <h2>Experiment finished</h2>
             <p>Your total success is: ${totalReward}</p>
             <p>Thank you for your participation!</p>
-            <p>Press any key to continue</p>
+            <p>[Press any key to continue]</p>
         `;
     },
     data: {
@@ -189,9 +200,16 @@ const debrief = {
     }
 };
 
+// exit fullscreen
+const exitFullscreen = {
+    type: jsPsychFullscreen,
+    fullscreen_mode: false
+};
+
 
 
 timeline.push(debrief);
+timeline.push(exitFullscreen);
 
 // Run experiment
 jsPsych.run(timeline);
